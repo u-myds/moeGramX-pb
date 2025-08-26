@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>moeGramX Plugin Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #111;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        h1 {
+            font-size: 2.5em;
+        }
+        h2 {
+            font-size: 2em;
+            margin-top: 40px;
+        }
+        h3 {
+            font-size: 1.5em;
+            margin-top: 30px;
+            border-bottom: none;
+        }
+        code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #eee;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        #toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+         #toc ul li {
+            margin-bottom: 5px;
+        }
+        #toc ul ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>moeGramX Documentation (v0.27.11.1759-1β)</h1>
+    <p>Welcome to the moeGramX plugin documentation! This system is based on <strong>ChaquoPy 16.1</strong> and <strong>Aliuhook 1.1.3</strong>, allowing you to write plugins in Python to interact with the application.</p>
+    <p>All plugins must be renamed to .moeplugin extension for loading.</p>
+    <div id="toc">
+        <h2>Table of Contents</h2>
+        <ul>
+            <li><a href="#plugin-structure">Plugin Structure</a></li>
+            <li><a href="#plugin-lifecycle">Plugin Lifecycle</a></li>
+            <li><a href="#interacting-with-android">Interacting with Android</a>
+                <ul>
+                    <li><a href="#accessing-context">Accessing context</a></li>
+                    <li><a href="#logging">Logging</a></li>
+                </ul>
+            </li>
+            <li><a href="#method-hooking">Method Hooking</a>
+                <ul>
+                    <li><a href="#creating-a-hook-class">Creating a Hook Class</a></li>
+                    <li><a href="#applying-a-hook">Applying a Hook</a></li>
+                    <li><a href="#complete-hooking-example">Complete Hooking Example</a></li>
+                </ul>
+            </li>
+            <li><a href="#api-reference">API Reference</a></li>
+        </ul>
+    </div>
+
+    <h2 id="plugin-structure">Plugin Structure</h2>
+    <p>Each plugin is a Python file containing a class that inherits from <code>Base</code>. All necessary base imports (<code>Base</code>, <code>hook</code>, <code>util</code>, <code>logger</code>, <code>context</code>) are already built-in and globally available.</p>
+    
+    <h3>Minimal Plugin Example</h3>
+<pre><code># The plugin identifier. Must be unique.
+# It's recommended to use the filename without the extension.
+__id__ = "my_awesome_plugin"
+
+class MyPlugin(Base):
+    def on_load(self):
+        # Code that executes when the plugin is loaded
+        logger.log("My plugin has been successfully loaded!")
+
+    def on_unload(self):
+        # Code that executes when the plugin is unloaded
+        logger.log("My plugin has been unloaded.")
+</code></pre>
+
+    <h2 id="plugin-lifecycle">Plugin Lifecycle</h2>
+    <p>The plugin class has several predefined methods that are called at different stages of its lifecycle.</p>
+    <ul>
+        <li><code>on_load(self)</code><br>Called once when the user enables the plugin. This is the ideal place for initialization, setting up hooks, and preparing resources.</li>
+        <li><code>on_unload(self)</code><br>Called when the user disables the plugin. You should clean up resources, remove hooks, and cancel subscriptions here.</li>
+        <li><code>on_send_message(self, param: TdApi.Function)</code><br>This hook method is called every time before a message is sent. It allows you to read or modify the data of the message being sent.
+            <ul>
+                <li><code>param</code> can be an instance of <code>TdApi.SendMessage</code> or <code>TdApi.SendMessageAlbum</code>.</li>
+                <li>You can change any attributes of the <code>param</code> object directly within this method.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2 id="interacting-with-android">Interacting with Android</h2>
+    <p>Some built-in utilities are available for you to interact with the Android environment.</p>
+
+    <h3 id="accessing-context">Accessing <code>context</code></h3>
+    <p>To access the Android application context, use the global variable <code>context</code>. This is the <code>applicationContext</code>, not the context of a specific <code>Activity</code>.</p>
+    <p><strong>Example: Showing a Toast Notification</strong></p>
+<pre><code># Don't forget to import the necessary Android classes
+from android.widget import Toast
+
+class MyPlugin(Base):
+    def on_load(self):
+        # To work with the UI, use util.runOnUiThread
+        def show_toast():
+            Toast.makeText(context, "Plugin loaded!", Toast.LENGTH_SHORT).show()
+        
+        util.runOnUiThread(show_toast)
+</code></pre>
+
+    <h3 id="logging">Logging</h3>
+    <p>For debugging and printing information, use the built-in logger.</p>
+    <pre><code>logger.log("This is my debug message.")</code></pre>
+    <p>Messages will appear in Logcat with the tag <code>PyModule</code> and your plugin's name:</p>
+    <pre><code>PyModule [my_awesome_plugin] This is my debug message.</code></pre>
+
+    <h2 id="method-hooking">Method Hooking</h2>
+    <p>You can intercept Java method calls using a mechanism similar to Xposed. This allows you to change the application's logic on the fly.</p>
+
+    <h3 id="creating-a-hook-class">Creating a Hook Class</h3>
+    <p>There are two types of hooks:</p>
+    <ol>
+        <li><strong><code>MethodHook</code></strong>: Allows you to execute your code <em>before</em> or <em>after</em> the original method is called.
+<pre><code>class MySimpleHook(MethodHook):
+    def beforeHookedMethod(self, param):
+        # Code executes BEFORE the original method
+        logger.log("Method is about to be called!")
+
+    def afterHookedMethod(self, param):
+        # Code executes AFTER the original method
+        logger.log("Method has already been called!")
+</code></pre>
+        </li>
+        <li><strong><code>MethodReplacement</code></strong>: Allows you to <strong>completely replace</strong> the original method with your own.
+<pre><code>class MyReplacementHook(MethodReplacement):
+    def replaceHookedMethod(self, param):
+        logger.log("The original method will not be called. This code runs instead.")
+        # Important: you must return a value of the same type
+        # that the original method returns.
+        # If the method returns nothing (void), return None.
+        return None 
+</code></pre>
+        </li>
+    </ol>
+    
+    <h3 id="applying-a-hook">Applying a Hook</h3>
+    <p>To set a hook, you need to find the target class and method, and then call <code>hook.hook_method()</code>.</p>
+
+    <h3 id="complete-hooking-example">Complete Hooking Example</h3>
+    <p>Let's hook the <code>Client.send</code> method to log all outgoing requests to TDLib.</p>
+<pre><code>from org.drinkless.tdlib import TdApi, Client
+
+# --- Step 1: Create the hook class ---
+class SendMethodHook(MethodHook):
+    def beforeHookedMethod(self, param):
+        # param.args is an array of arguments passed to the method.
+        # In this case, the first argument (param.args[0]) is the TdApi.Function object.
+        td_function = param.args[0]
+        logger.log(f"Intercepted Client.send call: {td_function.toString()}")
+
+# --- Step 2: Define the plugin and apply the hook ---
+__id__ = "send_logger_plugin"
+
+class SendLoggerPlugin(Base):
+    unhook_object = None # A variable to store the "unhook" object
+
+    def on_load(self):
+        try:
+            # Find the org.drinkless.tdlib.Client class
+            client_class = hook.find_class("org.drinkless.tdlib.Client")
+            
+            # Find the "send" method with its three parameters
+            # To do this, we get the classes of its arguments
+            function_class = hook.find_class("org.drinkless.tdlib.TdApi$Function")
+            result_handler_class = hook.find_class("org.drinkless.tdlib.Client$ResultHandler")
+            exception_handler_class = hook.find_class("org.drinkless.tdlib.Client$ExceptionHandler")
+
+            send_method = client_class.getDeclaredMethod(
+                "send", 
+                function_class, 
+                result_handler_class, 
+                exception_handler_class
+            )
+
+            # Apply the hook and save the object for later removal
+            self.unhook_object = hook.hook_method(send_method, SendMethodHook())
+            
+            if self.unhook_object:
+                logger.log("Hook on Client.send was successfully installed!")
+            else:
+                logger.log("Failed to install the hook.")
+
+        except Exception as e:
+            logger.log(f"Error while installing hook: {e}")
+
+    def on_unload(self):
+        # Remove the hook when the plugin is unloaded
+        if self.unhook_object:
+            self.unhook_object.unhook()
+            logger.log("Hook on Client.send has been removed.")
+</code></pre>
+
+    <h2 id="api-reference">API Reference</h2>
+    <p>Here are the main available variables and their methods.</p>
+    
+    <h3>Android Utilities (<code>util</code>)</h3>
+    <ul>
+        <li><code>runOnUiThread(r: PyObject) -> None</code><br>Executes the function <code>r</code> on the main (UI) thread of Android. <strong>This is necessary for any UI operations</strong>, such as showing a <code>Toast</code>.</li>
+    </ul>
+
+    <h3>Hooking Utilities (<code>hook</code>)</h3>
+    <ul>
+        <li><code>find_class(classname: str) -> Class&lt;*&gt;?</code><br>Equivalent to <code>Class.forName(classname)</code> in Java. Returns a Java <code>Class</code> object or <code>None</code> if the class is not found.</li>
+        <li><code>hook_method(method: Method, hook: PyObject) -> XC_MethodHook.Unhook?</code><br>Sets a hook on a Java method.
+            <ul>
+                <li><code>method</code>: The <code>java.lang.reflect.Method</code> object to be hooked.</li>
+                <li><code>hook</code>: An instance of your class that inherits from <code>MethodHook</code> or <code>MethodReplacement</code>.</li>
+                <li>Returns a special <code>Unhook</code> object that can be used to remove the hook (by calling its <code>unhook()</code> method), or <code>None</code> in case of an error.</li>
+            </ul>
+        </li>
+    </ul>
+
+</body>
+</html>
