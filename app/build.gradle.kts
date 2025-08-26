@@ -9,6 +9,7 @@ plugins {
   id("com.android.application")
   id("module-plugin")
   id("cmake-plugin")
+  id("com.chaquo.python")
 }
 
 val generateResourcesAndThemes by tasks.registering(GenerateResourcesAndThemesTask::class) {
@@ -56,11 +57,27 @@ data class PullRequest (
     properties.getOrThrow("pr.$id.author")
   )
 }
+chaquopy {
+  defaultConfig {
 
+    buildPython("python3.11")
+    version = "3.11"
+    pip {
+      install("requests")
+      install("debugpy")
+      install("funcy")
+      install("lxml")
+      install("packaging")
+      install("pillow")
+      install("PyYAML")
+    }
+  }
+}
 android {
   namespace = "org.thunderdog.challegram"
 
   defaultConfig {
+
     val jniVersion = versions.getProperty("version.jni")
     val leveldbVersion = versions.getProperty("version.leveldb")
 
@@ -375,6 +392,7 @@ gradle.projectsEvaluated {
 
 dependencies {
   // TDLib: https://github.com/tdlib/td/blob/master/CHANGELOG.md
+  implementation("com.aliucord:Aliuhook:1.1.3")
   implementation(project(":tdlib"))
   implementation(project(":vkryl:core"))
   implementation(project(":vkryl:leveldb"))

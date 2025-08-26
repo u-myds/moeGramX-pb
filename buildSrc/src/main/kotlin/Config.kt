@@ -56,11 +56,7 @@ class AbiVariant (val flavor: String, vararg val filters: String = arrayOf(), va
     }
 
   val minSdkVersion: Int
-    get() = if (is64Bit) {
-      Config.PRIMARY_SDK_VERSION
-    } else {
-      Config.MIN_SDK_VERSION
-    }
+    get() = 24
 }
 
 @Suppress("MemberVisibilityCanBePrivate")

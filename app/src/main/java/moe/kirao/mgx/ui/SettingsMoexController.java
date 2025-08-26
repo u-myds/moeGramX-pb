@@ -18,8 +18,11 @@ import org.thunderdog.challegram.ui.SettingsAdapter;
 import org.thunderdog.challegram.v.CustomRecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import moe.kirao.mgx.MoexConfig;
+import moe.kirao.mgx.plugins.Manager;
+import moe.kirao.mgx.plugins.Plugin;
 
 public class SettingsMoexController extends RecyclerViewController<SettingsMoexController.Args> implements View.OnClickListener, View.OnLongClickListener {
   public SettingsMoexController (Context context, Tdlib tdlib) {
@@ -35,6 +38,9 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
   public static final int CATEGORY_CHATS = 3;
   public static final int CATEGORY_MISC = 4;
 
+  public static final int CATEGORY_PLUGINS = 5;
+
+  public static List<Plugin> loadedPlugins;
   private int category;
 
   public static class Args {
@@ -56,7 +62,8 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
       ? Lang.getString(R.string.GeneralMoexSettings) : category == CATEGORY_CHATS
       ? Lang.getString(R.string.Chats) : category == CATEGORY_INTERFACE
       ? Lang.getString(R.string.InterfaceMoexSettings) : category == CATEGORY_MISC
-      ? Lang.getString(R.string.Other) : Lang.getString(R.string.MoexSettings);
+      ? Lang.getString(R.string.Other) : category == CATEGORY_PLUGINS ? Lang.getString(R.string.Plugins) :
+            Lang.getString(R.string.MoexSettings);
   }
 
   private SettingsAdapter adapter;
@@ -77,7 +84,11 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
     } else if (viewId == R.id.btn_MiscMoexSettings) {
       c.setArguments(new SettingsMoexController.Args(SettingsMoexController.CATEGORY_MISC));
       navigateTo(c);
-    } else if (viewId == R.id.btn_moexCrowdinLink) {
+    } else if(viewId == R.id.btn_Plugins){
+      c.setArguments(new SettingsMoexController.Args(SettingsMoexController.CATEGORY_PLUGINS));
+      navigateTo(c);
+    }
+    else if (viewId == R.id.btn_moexCrowdinLink) {
       tdlib.ui().openUrl(this, Lang.getString(R.string.MoexCrowdinLink), new TdlibUi.UrlOpenParameters());
     } else if (viewId == R.id.btn_moexChatLink) {
       tdlib.ui().openUrl(this, Lang.getString(R.string.MoexChatLink), new TdlibUi.UrlOpenParameters().forceInstantView());
@@ -138,6 +149,13 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
     } else if (viewId == R.id.btn_silent) {
       MoexConfig.instance().toggleSilentMessage();
       adapter.updateValuedSettingById(viewId);
+    }
+    for(Plugin plugin: Manager.INSTANCE.getLoadedPlugins()){
+      if(plugin.getId() == viewId){
+        Manager.INSTANCE.checkPlugin(plugin.getId(), !plugin.getEnabled());
+        MoexConfig.instance().putBoolean(String.valueOf(plugin.getId()), plugin.getEnabled());
+        adapter.updateValuedSettingById(viewId);
+      }
     }
   }
 
@@ -328,6 +346,16 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
         } else if (itemId == R.id.btn_silent) {
           view.getToggler().setRadioEnabled(MoexConfig.silentMessage, isUpdate);
         }
+        for (Plugin plugin: Manager.INSTANCE.getLoadedPlugins()){
+          if(plugin.getId() == itemId){
+            view.getToggler().setRadioEnabled(plugin.getEnabled(), isUpdate);
+          }
+          if(plugin.getId() << 2 == itemId){
+            //Manager.INSTANCE.deletePlugin(plugin.getName());
+            //adapter.updateValuedSettingById(itemId);
+            //adapter.updateValuedSettingById(itemId << 2);
+          }
+        }
       }
     };
 
@@ -349,6 +377,13 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
         items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, R.id.btn_hidePhone, 0, R.string.hidePhoneNumber));
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
+        break;
+      case CATEGORY_PLUGINS:
+        for(Plugin plugin: Manager.INSTANCE.getLoadedPlugins()){
+          items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, plugin.getId(), 0, plugin.getName()));
+          //items.add(new ListItem(ListItem.TYPE_SETTING, plugin.getId() << 2, 0, Lang.getString(R.string.DeletePlugin, plugin.getName())));
+          items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+        }
         break;
       case CATEGORY_INTERFACE:
         items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, R.string.DrawerOptions));
@@ -418,6 +453,8 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
         items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_ChatsMoexSettings, R.drawable.baseline_chat_bubble_24, R.string.ChatsMoexSettings));
         items.add(new ListItem(ListItem.TYPE_SEPARATOR));
         items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_MiscMoexSettings, R.drawable.baseline_layers_24, R.string.Other));
+        //items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
+        items.add(new ListItem(ListItem.TYPE_SETTING, R.id.btn_Plugins, R.drawable.baseline_extension_24, R.string.Plugins));
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
 
         items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, R.string.MoexLinks));
@@ -436,5 +473,6 @@ public class SettingsMoexController extends RecyclerViewController<SettingsMoexC
     }
     adapter.setItems(items, false);
     recyclerView.setAdapter(adapter);
+
   }
 }

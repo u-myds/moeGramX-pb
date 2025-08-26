@@ -115,6 +115,7 @@ import me.vkryl.core.ArrayUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.Filter;
+import moe.kirao.mgx.plugins.Plugin;
 
 public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> implements MeasuredAdapterDelegate, SliderWrapView.Callback, MaterialEditTextGroup.FocusListener, FactorAnimator.Target, TGLegacyManager.EmojiLoadListener, Lang.Listener, MaterialEditTextGroup.TextChangeListener, FloatListener, ColorToneView.ChangeListener, NonMaterialButton.PressureListener, ChartLayout.Delegate {
   private final Context context;
@@ -124,6 +125,8 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingHolder> impleme
   protected final List<RecyclerView> parentViews = new ArrayList<>();
   private final View.OnClickListener onClickListener;
   private final List<ListItem> items;
+
+
 
   private @Nullable View.OnLongClickListener onLongClickListener;
 

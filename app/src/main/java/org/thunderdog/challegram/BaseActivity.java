@@ -155,6 +155,7 @@ import me.vkryl.core.lambda.RunnableBool;
 import me.vkryl.core.lambda.RunnableData;
 import me.vkryl.core.reference.ReferenceList;
 import me.vkryl.core.reference.ReferenceUtils;
+import moe.kirao.mgx.plugins.Manager;
 import nl.dionsegijn.konfetti.xml.KonfettiView;
 import tgx.app.RecaptchaContext;
 import tgx.app.RecaptchaProviderRegistry;
@@ -465,6 +466,7 @@ public abstract class BaseActivity extends ComponentActivity implements View.OnT
 
     AppState.initApplication();
     AppState.ensureReady();
+    Manager.INSTANCE.init(getApplicationContext());
 
     recaptcha = new RecaptchaContext(getApplication());
     RecaptchaProviderRegistry.INSTANCE.addProvider(recaptcha);

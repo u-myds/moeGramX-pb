@@ -274,6 +274,10 @@ public class Config {
     return doc != null && doc.fileName != null && doc.fileName.toLowerCase().endsWith("." + BuildConfig.THEME_FILE_EXTENSION);
   }
 
+  public static boolean isPlugin(TdApi.Document doc){
+    return doc != null && doc.fileName != null && doc.fileName.toLowerCase().endsWith(".moeplugin");
+  }
+
   public static final boolean DISABLE_PASSWORD_INVISIBILITY = true;
 
   public static final boolean DEBUG_STICKER_OUTLINES = false; // BuildConfig.DEBUG;

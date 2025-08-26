@@ -14,12 +14,16 @@
  */
 package org.thunderdog.challegram.widget;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -27,6 +31,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.widget.Toast;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
@@ -70,6 +75,8 @@ import me.vkryl.core.BitwiseUtils;
 import me.vkryl.core.ColorUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.Destroyable;
+import moe.kirao.mgx.plugins.PluginInstaller;
+
 import tgx.td.Td;
 
 public class FileProgressComponent implements TdlibFilesManager.FileListener, FactorAnimator.Target, TGPlayerController.TrackListener, Destroyable {
@@ -120,6 +127,7 @@ public class FileProgressComponent implements TdlibFilesManager.FileListener, Fa
 
   private static final int FLAG_THEME = 1;
   private static final int FLAG_MEDIA_DOCUMENT = 1 << 1;
+  private static final int FLAG_PLUGIN_FILE = 2 << 2;
 
   private TdApi.Document originalDocument;
 
@@ -365,11 +373,13 @@ public class FileProgressComponent implements TdlibFilesManager.FileListener, Fa
 
   public void setDocumentMetadata (TdApi.Document document, boolean needIcon) {
     boolean isTheme = Config.isThemeDoc(document);
+    boolean isPlugin = Config.isPlugin(document);
     if (needIcon) {
       setDownloadedIconRes(isTheme ? R.drawable.baseline_palette_24 : R.drawable.baseline_insert_drive_file_24);
     }
     flags = BitwiseUtils.setFlag(flags, FLAG_THEME, isTheme);
     flags = BitwiseUtils.setFlag(flags, FLAG_MEDIA_DOCUMENT, MediaItem.isMediaDocument(document));
+    flags = BitwiseUtils.setFlag(flags, FLAG_PLUGIN_FILE, isPlugin);
     this.originalDocument = document;
   }
 
@@ -567,7 +577,35 @@ public class FileProgressComponent implements TdlibFilesManager.FileListener, Fa
             runOnUiThreadOptional(c, () -> {
               c.tdlib().ui().readCustomTheme(c, file, null, defaultOpen);
             });
-          } else if (BitwiseUtils.hasFlag(flags, FLAG_MEDIA_DOCUMENT)) {
+          }
+          if(BitwiseUtils.hasFlag(flags, FLAG_PLUGIN_FILE)){
+            AlertDialog.Builder diag = new AlertDialog.Builder(context);
+            diag.setTitle(String.format("Install %s?", originalDocument.fileName.replace(".moeplugin", "")));
+            diag.setMessage("Be carefully while installing plugins");
+
+            diag.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+              }
+            });
+            diag.setPositiveButton("Install", new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                PluginInstaller.INSTANCE.install(context, file, originalDocument);;
+              }
+            });
+            diag.setNeutralButton("Source", new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(context, "Not yet implemented", Toast.LENGTH_SHORT).show();
+              }
+            });
+            runOnUiThreadOptional(c, () -> {
+              c.showAlert(diag);
+                    });
+          }
+          else if (BitwiseUtils.hasFlag(flags, FLAG_MEDIA_DOCUMENT)) {
             Background.instance().post(() -> {
               MediaItem item = MediaItem.valueOf(context, tdlib, originalDocument, null);
               if (item != null) {

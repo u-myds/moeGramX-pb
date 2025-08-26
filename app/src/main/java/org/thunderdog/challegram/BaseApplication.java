@@ -18,13 +18,20 @@ import androidx.annotation.NonNull;
 import androidx.multidex.MultiDexApplication;
 import androidx.work.Configuration;
 
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
+
 import org.thunderdog.challegram.tool.UI;
+
+
+import moe.kirao.mgx.plugins.Manager;
 
 public final class BaseApplication extends MultiDexApplication implements Configuration.Provider {
   @Override
   public void onCreate () {
     super.onCreate();
     UI.initApp(getApplicationContext());
+
   }
 
   @NonNull

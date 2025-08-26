@@ -4,7 +4,7 @@ values-ca
 values-cs
 values-de
 values-eo
-values-es/strings.xml
+values-es
 values-fa
 values-fi
 values-fr
@@ -17,13 +17,13 @@ values-kk
 values-ml
 values-ms
 values-nb
-values-pl/strings.xml
-values-pt-rBR/strings.xml
+values-pl
+values-pt-rBR
 values-ro
-values-ru/strings.xml
+values-ru
 values-sk
 values-sr
 values-sv
 values-ta
-values-tr/strings.xml
-values-uk/strings.xml
+values-tr
+values-uk

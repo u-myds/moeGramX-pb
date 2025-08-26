@@ -66,4 +66,5 @@
   <string name="StoryId">Количество</string>
   <string name="Edited">Изменено</string>
   <string name="MoexDarkenDrawer">Затемнить аватар</string>
+  <string name="Plugins">Плагины</string>
 </resources>

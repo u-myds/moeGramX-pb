@@ -5608,5 +5608,6 @@
 
   <string name="xBotUsers_one">%1$s monthly user</string>
   <string name="xBotUsers_other">%1$s monthly users</string>
+    <string name="DeletePlugin">Delete plugin \"%1$s\"</string>
 
 </resources>
